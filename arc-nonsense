@@ -1,0 +1,66 @@
+
+
+sed '4ialias kubectl="minikube kubectl --"' ~/.bashrc
+
+sudo mkdir -p /etc/apt/keyrings
+
+sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get install -y ca-certificates curl gnupg lsb-release
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt-get update && sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+sudo docker run hello-world
+
+curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
+
+sudo usermod -aG docker $USER && newgrp docker
+
+minikube start
+
+minikube kubectl -- get po -A
+
+
+
+sudo snap install kubectl --classic
+
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.8.2/cert-manager.yaml
+
+
+
+
+kubectl create -f \
+https://github.com/actions-runner-controller/actions-runner-controller/\
+releases/download/v0.22.0/actions-runner-controller.yaml
+
+kubectl replace -f \
+https://github.com/actions-runner-controller/actions-runner-controller/\
+releases/download/v0.22.0/actions-runner-controller.yaml
+
+
+
+kubectl create secret generic controller-manager \
+    -n actions-runner-system \
+    --from-literal=github_token=TOKEN
+
+
+/bin/cat <<'EOT' >> ~/runnerdeployment.yaml
+apiVersion: actions.summerwind.dev/v1alpha1
+kind: RunnerDeployment
+metadata:
+  name: example-runnerdeploy
+spec:
+  replicas: 1
+  template:
+    spec:
+      repository: KoopaKoop/studious-octo-succotash
+EOT
+
+kubectl apply -f runnerdeployment.yaml
+
+kubectl get runners
+kubectl get pods
